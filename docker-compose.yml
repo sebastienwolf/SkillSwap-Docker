@@ -1,0 +1,52 @@
+# Lance l'API Laravel et le frontend Vue ensemble, avec la communication
+# entre les deux déjà configurée (reverse proxy Nginx côté frontend, voir
+# SkillswapFrontend/docker/nginx.conf) : une seule commande suffit, sans
+# rien installer sur la machine hôte au préalable (ni PHP, ni Node).
+#
+# Démarrage :
+#   git clone --recurse-submodules <url-de-ce-depot>
+#   docker compose up --build
+#
+# Frontend : http://localhost:5173
+# API :      http://localhost:8000/api
+#
+# Voir README.md pour le détail (mise à jour des submodules, ports
+# personnalisés, etc.).
+
+services:
+    api:
+        build:
+            context: ./skillswap-api
+        ports:
+            - '${API_PORT:-8000}:8000'
+        volumes:
+            # Seul état à faire persister : la base SQLite survit ainsi à un
+            # `docker compose down` / `up` sans perdre les données.
+            - skillswap-database:/var/www/html/database
+        healthcheck:
+            # Pas de route /health dédiée : on vérifie simplement que le
+            # serveur PHP accepte les connexions sur son port.
+            test: ['CMD', 'php', '-r', 'exit(@fsockopen("127.0.0.1", 8000) ? 0 : 1);']
+            interval: 5s
+            timeout: 3s
+            retries: 10
+            start_period: 15s
+
+    front:
+        build:
+            context: ./SkillswapFrontend
+            args:
+                # URL relative : les appels passent par le reverse proxy
+                # Nginx du conteneur frontend vers le conteneur "api" (cf.
+                # SkillswapFrontend/docker/nginx.conf), jamais directement
+                # depuis le navigateur.
+                VITE_API_URL: /api
+        ports:
+            - '${FRONT_PORT:-5173}:80'
+        depends_on:
+            api:
+                condition: service_healthy
+
+volumes:
+    skillswap-database:
+        driver: local

@@ -1,0 +1,6 @@
+[submodule "skillswap-api"]
+	path = skillswap-api
+	url = git@github.com:sebastienwolf/skillswap-api.git
+[submodule "SkillswapFrontend"]
+	path = SkillswapFrontend
+	url = git@github.com:sebastienwolf/skillswap-vue.js.git
