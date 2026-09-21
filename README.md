@@ -20,7 +20,7 @@ docker compose up --build
 Une fois les conteneurs démarrés (le premier lancement inclut la génération de la clé d'application Laravel, les migrations et un jeu de données de démonstration) :
 
 - Frontend : http://localhost:5173
-- API : http://localhost:8000/api
+- API : http://localhost:8000
 
 ## Comment ça communique
 
